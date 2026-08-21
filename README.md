@@ -255,7 +255,7 @@ GitHub Actions runs the complete pipeline in a clean Linux environment. Playwrig
 Prerequisites: Node.js 20.19 or newer and npm.
 
 ```bash
-git clone https://github.com/deepthi132/space_fighter.git
+git clone https://github.com/deepthi132/Space_Fighter.git
 cd space_fighter
 npm ci
 npm run dev
