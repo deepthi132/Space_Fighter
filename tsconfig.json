@@ -4,6 +4,7 @@
     "module": "esnext",
     "lib": ["ES2023", "DOM"],
     "types": ["vite/client"],
+    "strict": true,
     "skipLibCheck": true,
 
     /* Bundler mode */
@@ -17,7 +18,9 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "erasableSyntaxOnly": true,
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitOverride": true,
+    "useDefineForClassFields": true
   },
   "include": ["src"]
 }

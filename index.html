@@ -2,59 +2,111 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/png" href="/landslide.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Rock Rollers - A thrilling space fighter web game built with TypeScript, Canvas, and Vite. Pilot your spaceship, shoot enemies, and score high!" />
-    <meta name="keywords" content="Space Fighter, Game, TypeScript, HTML5 Canvas, Web Game, Rock Rollers" />
-    <meta name="author" content="Deepthi" />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <title>Rock Rollers - Space Fighter</title>
+    <meta
+      name="description"
+      content="A responsive browser space shooter built with TypeScript, Canvas 2D, and Vite."
+    />
+    <meta name="author" content="Deepthi Ramneti" />
+    <meta name="theme-color" content="#080b24" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>Space Fighter | TypeScript Canvas Game</title>
   </head>
   <body>
+    <header class="site-header">
+      <p class="eyebrow">TypeScript Canvas Game</p>
+      <h1>Space Fighter</h1>
+      <p class="tagline">Choose a ship, select a weapon, and defend the sector.</p>
+    </header>
 
-    <!-- Tab bar -->
-    <nav id="tab-bar">
-      <div id="tab-pills">
-        <button class="tab active" data-tab="relax">🎮 Relax</button>
-        <button class="tab"        data-tab="focus">🎯 Focus</button>
-      </div>
-    </nav>
+    <main id="app">
+      <section class="game-shell" aria-labelledby="game-heading">
+        <h2 id="game-heading" class="sr-only">Space Fighter game</h2>
 
-    <!-- Relax tab — the game -->
-    <div id="tab-relax" class="tab-panel active">
-      <div id="app">
+        <div class="status-bar" aria-label="Game status">
+          <span>Score <strong id="score-value">0</strong></span>
+          <span>Lives <strong id="lives-value">3</strong></span>
+          <span>Best <strong id="high-score-value">0</strong></span>
+          <span>Status <strong id="state-value">Ready</strong></span>
+        </div>
+
         <div id="game-container">
-          <canvas id="gameCanvas" width="800" height="600"></canvas>
-          <button id="pause-btn">⏸ Pause</button>
-        </div>
-        <div id="controls">
-          <div class="control-row">
-            <span class="control-label">Weapon</span>
-            <div id="weapon-selector">
-              <button class="weapon-btn active" data-weapon="laser"  data-tooltip="1 bullet · +3 on kill · -1 if missed">🚀 Laser</button>
-              <button class="weapon-btn"        data-weapon="ak47"   data-tooltip="2 bullets · +2 on kill · -2 if missed">🔫 AK-47</button>
-              <button class="weapon-btn"        data-weapon="cannon" data-tooltip="3 bullets · +1 on kill · -3 if missed">💣 Cannon</button>
+          <canvas
+            id="gameCanvas"
+            width="800"
+            height="600"
+            tabindex="0"
+            role="application"
+            aria-label="Space Fighter game area"
+            aria-describedby="game-instructions"
+          >
+            Your browser does not support Canvas. Use a modern browser to play Space Fighter.
+          </canvas>
+
+          <div id="game-overlay" class="game-overlay">
+            <div class="overlay-card">
+              <p class="overlay-kicker">Ready, pilot?</p>
+              <h2 id="overlay-title">Defend the sector</h2>
+              <p id="overlay-message">
+                Move with the arrow keys and fire with Space. Three enemy escapes end the run.
+              </p>
+              <button id="start-btn" type="button" class="primary-action">Start game</button>
             </div>
           </div>
-          <div class="control-row">
-            <span class="control-label">Ship</span>
-            <div id="ship-selector">
-              <button class="ship-btn active" data-ship="scout">🛸 Scout</button>
-              <button class="ship-btn" data-ship="viper">✈️ Viper</button>
-              <button class="ship-btn" data-ship="titan">🛡 Titan</button>
-            </div>
-          </div>
+
+          <button id="pause-btn" type="button" class="pause-button" aria-pressed="false" disabled>
+            Pause
+          </button>
         </div>
-      </div>
-    </div>
 
-    <!-- Focus tab — notes app -->
-    <div id="tab-focus" class="tab-panel">
-      <div id="focus-app"></div>
-    </div>
+        <div class="control-panel" aria-label="Game configuration">
+          <fieldset>
+            <legend>Weapon</legend>
+            <div class="button-group">
+              <button type="button" data-weapon="laser" aria-pressed="true">
+                <span aria-hidden="true">⚡</span> Laser
+              </button>
+              <button type="button" data-weapon="pulse" aria-pressed="false">
+                <span aria-hidden="true">✦</span> Pulse
+              </button>
+              <button type="button" data-weapon="cannon" aria-pressed="false">
+                <span aria-hidden="true">●</span> Cannon
+              </button>
+            </div>
+          </fieldset>
 
+          <fieldset>
+            <legend>Ship</legend>
+            <div class="button-group">
+              <button type="button" data-ship="scout" aria-pressed="true">
+                <span aria-hidden="true">△</span> Scout
+              </button>
+              <button type="button" data-ship="viper" aria-pressed="false">
+                <span aria-hidden="true">◇</span> Viper
+              </button>
+              <button type="button" data-ship="titan" aria-pressed="false">
+                <span aria-hidden="true">⬡</span> Titan
+              </button>
+            </div>
+          </fieldset>
+        </div>
+
+        <details id="game-instructions" class="instructions">
+          <summary>How to play</summary>
+          <ul>
+            <li><kbd>←</kbd> <kbd>→</kbd> move the ship.</li>
+            <li><kbd>Space</kbd> fires the selected weapon.</li>
+            <li><kbd>1</kbd>, <kbd>2</kbd>, and <kbd>3</kbd> switch weapons.</li>
+            <li><kbd>P</kbd> or <kbd>Esc</kbd> pauses the game.</li>
+            <li>On touch screens, drag on the game area to move and fire.</li>
+          </ul>
+        </details>
+      </section>
+    </main>
+
+    <p id="game-announcement" class="sr-only" aria-live="polite"></p>
+
+    <footer class="site-footer">Built with TypeScript, Canvas 2D, and Vite.</footer>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
