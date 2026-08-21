@@ -4,6 +4,12 @@ Space Fighter is a responsive browser game engineered with TypeScript, Canvas 2D
 
 The application runs without a game engine or runtime framework. Its gameplay loop, state transitions, entity behavior, input handling, collision rules, procedural rendering, and persistence boundary are implemented directly in TypeScript.
 
+## Play online
+
+[**Launch Space Fighter →**](https://space-fighter-sand.vercel.app/)
+
+Open the game in a desktop or mobile browser to play it directly—no installation required.
+
 ## Engineering highlights
 
 - Frame-rate-independent gameplay driven by `requestAnimationFrame` and delta time
