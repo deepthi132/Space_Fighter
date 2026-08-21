@@ -16,4 +16,13 @@ export default tseslint.config(
       '@typescript-eslint/no-extraneous-class': 'off',
     },
   },
+  {
+    files: ['e2e/**/*.ts', 'playwright.config.ts'],
+    languageOptions: {
+      globals: globals.node,
+    },
+    rules: {
+      '@typescript-eslint/consistent-type-imports': 'error',
+    },
+  },
 );

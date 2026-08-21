@@ -13,11 +13,16 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "format": "prettier --check .",
-    "test": "vitest run",
-    "check": "npm run typecheck && npm run lint && npm run format && npm run test && npm run build"
+    "test": "npm run test:unit && npm run test:e2e",
+    "test:unit": "vitest run src",
+    "test:e2e": "playwright test",
+    "check": "npm run typecheck && npm run lint && npm run format && npm run test:unit && npm run build",
+    "check:all": "npm run check && npm run test:e2e"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.62.1",
+    "@types/node": "^26.2.0",
     "eslint": "^10.9.0",
     "globals": "^17.11.0",
     "prettier": "^3.9.6",

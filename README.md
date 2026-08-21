@@ -1,77 +1,256 @@
 # Space Fighter
 
-Space Fighter is a responsive browser game built with TypeScript, Canvas 2D, and Vite. The project explores real-time rendering, input handling, collision detection, state transitions, and accessible web controls without relying on a game engine or runtime framework.
+Space Fighter is a responsive browser game engineered with TypeScript, Canvas 2D, and Vite. It demonstrates how a small interactive product can still use deliberate architecture, testable domain logic, accessible controls, automated quality gates, and a production-ready delivery workflow.
 
-The game is implemented as a browser-native application with frame-rate-independent movement, keyboard and pointer controls, multiple ships and weapons, progressive difficulty, high-score persistence, and a complete start-to-game-over loop.
+The application runs without a game engine or runtime framework. Its gameplay loop, state transitions, entity behavior, input handling, collision rules, procedural rendering, and persistence boundary are implemented directly in TypeScript.
 
-## What the project demonstrates
+## Engineering highlights
 
-- A request-animation-frame game loop with delta-time updates
-- Separation between game configuration, entities, rules, orchestration, and presentation
-- Procedural Canvas rendering with no runtime image dependencies
-- Keyboard, mouse, and touch input through a unified controller
-- Explicit ready, running, paused, and game-over states
-- Responsive UI and accessible HTML controls around an interactive canvas
-- Automated type checking, linting, formatting, tests, builds, and CI
+- Frame-rate-independent gameplay driven by `requestAnimationFrame` and delta time
+- Explicit ready, running, paused, and game-over state transitions
+- Modular boundaries between orchestration, entities, configuration, rules, and presentation
+- Keyboard, mouse, and touch input through a shared game controller
+- Data-driven ships and weapons with different movement and firing behavior
+- Procedural Canvas graphics with zero production dependencies
+- Semantic HTML controls, focus management, live announcements, and responsive layout
+- Local high-score persistence with a failure-safe storage boundary
+- Ten automated tests: six unit tests and four Playwright end-to-end journeys
+- Continuous integration for types, linting, formatting, unit tests, build verification, and browser tests
 
 ## Technology
 
-- TypeScript
-- HTML5 Canvas 2D
-- Vite
-- Vitest
-- ESLint and Prettier
-- GitHub Actions
-- Vercel-compatible static deployment
+| Area               | Technology                   | Responsibility                                       |
+| ------------------ | ---------------------------- | ---------------------------------------------------- |
+| Language           | TypeScript                   | Strict types for application and gameplay contracts  |
+| Rendering          | Canvas 2D                    | Real-time procedural game graphics                   |
+| Build tooling      | Vite                         | Development server and optimized production bundle   |
+| Unit testing       | Vitest                       | Fast validation of deterministic game rules          |
+| End-to-end testing | Playwright                   | User journeys in an isolated Chromium browser        |
+| Code quality       | ESLint and Prettier          | Static analysis and consistent formatting            |
+| Automation         | GitHub Actions               | Repeatable quality gates on every main-branch update |
+| Deployment         | Vercel-compatible static app | CDN-ready build with security headers                |
 
 ## System architecture
 
+The design follows a **functional-core, imperative-shell** approach. Browser APIs and mutable frame orchestration stay in the outer controller, while deterministic gameplay calculations remain pure and independently testable.
+
 ```mermaid
-flowchart TD
-    Browser[Browser] --> Page[Semantic HTML and responsive CSS]
-    Page --> Bootstrap[src/main.ts]
-    Bootstrap --> Controller[SpaceFighterGame controller]
-    Controller --> Config[Ships, weapons, and game constants]
-    Controller --> Entities[Player, enemies, projectiles, and effects]
-    Controller --> Rules[Collision, wrapping, and difficulty rules]
-    Controller --> Renderer[Canvas 2D renderer]
-    Controller --> Input[Keyboard and pointer input]
-    Controller --> Storage[Local high-score storage]
-    Renderer --> Frame[Rendered game frame]
+flowchart LR
+    User[Keyboard / pointer / touch] --> DOM[Semantic HTML controls]
+    User --> Canvas[Canvas game surface]
+
+    subgraph Presentation
+        DOM
+        Canvas
+        CSS[Responsive CSS]
+    end
+
+    subgraph Application
+        Bootstrap[src/main.ts]
+        Controller[SpaceFighterGame]
+        State[Game state machine]
+        Storage[High-score adapter]
+    end
+
+    subgraph Domain
+        Config[Ship and weapon configuration]
+        Entities[Player / Enemy / Projectile / Effects]
+        Rules[Collision / wrapping / difficulty]
+    end
+
+    DOM --> Controller
+    Canvas --> Controller
+    Bootstrap --> Controller
+    Controller --> State
+    Controller --> Config
+    Controller --> Entities
+    Controller --> Rules
+    Controller --> Storage
+    Entities --> Canvas
+    State --> DOM
 ```
 
-`SpaceFighterGame` owns the application state and coordinates the frame lifecycle. Entity classes contain movement and drawing behavior, while `rules.ts` keeps deterministic game calculations independent from the browser so they can be unit tested.
+### Component responsibilities
 
-### Frame lifecycle
+| Component               | Role                                                                                        |
+| ----------------------- | ------------------------------------------------------------------------------------------- |
+| `src/main.ts`           | Composition root that resolves DOM elements and constructs the application                  |
+| `SpaceFighterGame.ts`   | Controller for state, input, timing, entity coordination, rendering, and UI synchronization |
+| `config.ts`             | Typed, declarative ship, weapon, and game-balancing configuration                           |
+| `entities.ts`           | Behavior and procedural drawing for players, enemies, projectiles, explosions, and feedback |
+| `rules.ts`              | Pure collision, wrapping, and difficulty calculations                                       |
+| `style.css`             | Responsive presentation, interaction states, and reduced-motion behavior                    |
+| `rules.test.ts`         | Unit-level verification of deterministic domain behavior                                    |
+| `space-fighter.spec.ts` | Browser-level verification of critical user journeys and responsive behavior                |
 
-1. `requestAnimationFrame` supplies a timestamp.
-2. The controller converts elapsed time into a capped delta value.
-3. Input updates the player and firing state.
-4. Entities move according to elapsed time rather than display refresh rate.
-5. Collision and escape rules update score, lives, difficulty, and effects.
-6. The renderer draws the background, entities, projectiles, and feedback layers.
-7. HTML status controls stay synchronized with the game state.
+## Architectural and design patterns
+
+### Application Controller
+
+`SpaceFighterGame` acts as the application controller and facade for the browser layer. It owns the lifecycle of a game session and coordinates entities, input, rendering, storage, and semantic status updates without leaking those responsibilities into the bootstrap file.
+
+### Finite State Machine
+
+The game lifecycle is represented by a constrained `GameStatus` union:
+
+```mermaid
+stateDiagram-v2
+    [*] --> ready
+    ready --> running: start
+    running --> paused: pause
+    paused --> running: resume
+    running --> gameOver: lives reach zero
+    gameOver --> running: restart
+```
+
+Actions are guarded by the current state, which prevents invalid transitions such as pausing before a game starts or resuming after game over.
+
+### Dependency Injection
+
+The controller receives its required DOM elements through its constructor. This keeps element discovery inside the composition root, makes dependencies explicit, and prevents hidden document queries throughout the game logic.
+
+### Data-Driven Strategy
+
+Ships and weapons are modeled as typed configuration rather than duplicated conditional branches. Selecting a configuration changes movement speed, firing cadence, projectile spread, appearance, and scoring behavior while the orchestration algorithm remains unchanged.
+
+### Entity Model
+
+Each moving or visual object encapsulates its own update and drawing behavior. The controller manages collections and interactions, while individual entities remain responsible for their local state.
+
+### Functional Core, Imperative Shell
+
+Collision detection, position wrapping, and difficulty progression are pure functions in `rules.ts`. Browser events, animation frames, Canvas commands, and local storage remain in the imperative shell. This boundary makes core rules deterministic, fast to test, and independent of the DOM.
+
+### Observer-Style Event Handling
+
+DOM keyboard, pointer, visibility, and button events feed a normalized input state. The frame loop consumes that state instead of embedding gameplay calculations directly inside individual event callbacks.
+
+### Resilient Boundary Adapter
+
+High-score persistence is isolated behind small read/write methods. Storage failures are contained so privacy settings or unavailable browser storage cannot make the game unplayable.
+
+## Runtime flow
+
+```mermaid
+sequenceDiagram
+    participant Browser
+    participant Controller as SpaceFighterGame
+    participant Rules
+    participant Entities
+    participant Canvas
+    participant UI as Semantic UI
+
+    Browser->>Controller: requestAnimationFrame(timestamp)
+    Controller->>Controller: calculate capped delta time
+    Controller->>Entities: apply input and update positions
+    Controller->>Rules: evaluate collisions and difficulty
+    Rules-->>Controller: deterministic results
+    Controller->>Entities: update score, lives, and effects
+    Controller->>Canvas: render background and entities
+    Controller->>UI: synchronize status and announcements
+    Controller->>Browser: request next frame
+```
+
+The delta is capped before each update to prevent a large movement jump after a suspended or backgrounded browser tab.
+
+## Testing strategy
+
+The project uses layered tests so each risk is checked at the fastest reliable level.
+
+```mermaid
+flowchart BT
+    Static[TypeScript + ESLint + Prettier]
+    Unit[6 Vitest unit tests]
+    E2E[4 Playwright browser journeys]
+    Build[Production build verification]
+
+    Static --> Unit
+    Unit --> Build
+    Build --> E2E
+```
+
+### Unit tests
+
+Vitest exercises the pure domain layer without starting a browser:
+
+- Collision at and beyond the combined-radius boundary
+- Player wrapping beyond the left and right edges
+- Preservation of valid on-screen positions
+- Difficulty progression from its baseline through its upper cap
+
+These tests are intentionally small and deterministic, making rule regressions quick to identify.
+
+### End-to-end tests
+
+Playwright starts the application and verifies it through the same accessible controls a user operates.
+
+| Journey                | Risk covered                                                                |
+| ---------------------- | --------------------------------------------------------------------------- |
+| Accessible ready state | Page boot, headings, Canvas labeling, initial score/lives, disabled actions |
+| Configure and play     | Ship and weapon selection, start, pause, resume, and keyboard interaction   |
+| High-score restoration | Browser storage integration and UI synchronization                          |
+| Mobile viewport        | Critical controls remain visible with no horizontal overflow at 390px       |
+
+Tests use role-, label-, and state-based locators instead of visual coordinates. This verifies semantic behavior and makes the suite less brittle when presentation styles change.
+
+### Continuous integration
+
+```mermaid
+flowchart LR
+    Change[Push or pull request] --> Install[npm ci]
+    Install --> Browser[Install isolated Chromium]
+    Browser --> Types[Type check]
+    Types --> Lint[Lint and format check]
+    Lint --> Unit[Unit tests]
+    Unit --> Build[Production build]
+    Build --> E2E[End-to-end tests]
+    E2E --> Report[Playwright report artifact]
+```
+
+GitHub Actions runs the complete pipeline in a clean Linux environment. Playwright traces are retained on retries, and an HTML browser-test report is uploaded for inspection.
+
+## Quality attributes
+
+- **Correctness:** strict TypeScript, pure rule tests, and state-based end-to-end assertions
+- **Performance:** delta-time updates, bounded frame deltas, procedural assets, and a small production bundle
+- **Accessibility:** semantic controls, keyboard operation, focus management, Canvas fallback content, and live status announcements
+- **Responsiveness:** scalable Canvas presentation and mobile-specific layout verification
+- **Reliability:** safe input reset on focus loss, automatic pause on hidden tabs, and storage failure handling
+- **Security:** no production dependencies, restrictive deployment headers, and no external runtime assets
+- **Maintainability:** typed configuration, explicit responsibilities, pure rule boundaries, and automated formatting
+
+## Engineering trade-offs
+
+- **Canvas instead of DOM entities:** Canvas is suited to frequent rendering and many moving objects, while surrounding controls remain semantic HTML for accessibility.
+- **No game engine:** implementing the loop and rules directly keeps the architecture visible and the bundle small, at the cost of building collision and lifecycle infrastructure manually.
+- **Procedural graphics:** generated shapes eliminate asset-loading failures and licensing ambiguity, while intentionally favoring a cohesive minimal style over detailed artwork.
+- **Local storage:** it provides instant persistence without a backend, but scores remain device-local and are not authoritative multiplayer data.
+- **Configuration over subclasses:** typed data keeps ship and weapon variants easy to extend; more complex future behavior could graduate to dedicated strategy objects.
 
 ## Project structure
 
 ```text
 .
-├── .github/workflows/ci.yml   # Automated quality checks
-├── public/favicon.svg         # Project favicon
+├── .github/workflows/ci.yml    # Complete CI quality pipeline
+├── e2e/
+│   └── space-fighter.spec.ts   # Playwright user journeys
+├── public/
+│   └── favicon.svg             # Procedural project identity
 ├── src/
 │   ├── game/
 │   │   ├── SpaceFighterGame.ts # State, input, frame loop, and orchestration
 │   │   ├── config.ts           # Typed ship and weapon configuration
-│   │   ├── entities.ts         # Game entities and procedural rendering
+│   │   ├── entities.ts         # Entity behavior and procedural rendering
 │   │   ├── rules.ts            # Pure gameplay calculations
-│   │   └── rules.test.ts       # Unit tests for deterministic rules
-│   ├── main.ts                 # DOM bootstrap
-│   └── style.css               # Responsive application styling
-├── index.html                  # Semantic game interface
-└── vercel.json                 # Static deployment and security headers
+│   │   └── rules.test.ts       # Vitest unit tests
+│   ├── main.ts                 # Composition root
+│   └── style.css               # Responsive presentation
+├── index.html                  # Semantic application shell
+├── playwright.config.ts        # End-to-end test environment
+└── vercel.json                 # Deployment and security headers
 ```
 
-## Local setup
+## Local development
 
 Prerequisites: Node.js 20.19 or newer and npm.
 
@@ -82,11 +261,29 @@ npm ci
 npm run dev
 ```
 
-Create a production build with:
+## Running the quality pipeline
+
+Install the isolated Playwright browser once:
 
 ```bash
+npx playwright install chromium
+```
+
+Then run every local quality gate:
+
+```bash
+npm run check:all
+```
+
+Individual commands are also available:
+
+```bash
+npm run typecheck
+npm run lint
+npm run format
+npm run test:unit
+npm run test:e2e
 npm run build
-npm run preview
 ```
 
 ## Controls
@@ -100,34 +297,14 @@ npm run preview
 
 Three enemy escapes end a run. Enemy speed increases with score, while ship and weapon choices change movement speed, firing cadence, projectile patterns, and points per hit.
 
-## Quality checks
+## Roadmap
 
-```bash
-npm run typecheck
-npm run lint
-npm run format
-npm run test
-npm run build
-```
-
-Run the full local verification pipeline with `npm run check`. The same pipeline runs for every pull request through GitHub Actions.
-
-## Engineering decisions
-
-- **Delta-time movement:** gameplay speed remains consistent across different refresh rates.
-- **Procedural artwork:** Canvas paths keep the project self-contained and avoid external asset-loading failures.
-- **Pure rules:** collision, wrapping, and difficulty logic can be tested without a browser.
-- **Input isolation:** game shortcuts ignore interactive HTML controls and reset safely when focus is lost.
-- **Progressive enhancement:** the canvas includes fallback content, while status and configuration remain semantic HTML.
-- **Zero production dependencies:** tooling is used only during development and compilation.
+- Add automated accessibility scanning and visual-regression baselines
+- Introduce deterministic seeded gameplay for deeper simulation testing
+- Add sound effects with a persistent mute preference
+- Add boss encounters, collectible power-ups, and difficulty modes
+- Extract complex enemy movement into interchangeable behavior strategies
 
 ## Credits
 
-Designed and developed by Deepthi Ramneti. The current architecture, interface, and gameplay systems form a modular TypeScript browser game, with all graphics rendered procedurally through Canvas 2D.
-
-## Roadmap
-
-- Add sound effects and a persistent mute preference
-- Introduce boss encounters and collectible power-ups
-- Expand automated browser and accessibility coverage
-- Add optional difficulty modes and saved player preferences
+Designed and developed by Deepthi Ramneti. The architecture, interface, gameplay systems, test suites, and delivery workflow are implemented as a modular TypeScript browser application. All graphics are rendered procedurally with Canvas 2D.
